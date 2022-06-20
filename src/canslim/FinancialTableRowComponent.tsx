@@ -1,18 +1,32 @@
-import { Chip, Stack, TableCell, TableRow } from "@mui/material";
+import { Chip, Link, Stack, TableCell, TableRow } from "@mui/material";
 import {
   FinancialBadge,
   FinancialTableRow,
 } from "../interfaces/FinancialTableInterfaces";
 import FlagIcon from "@mui/icons-material/Flag";
 import { CompanyDetails } from "../interfaces/CompanyDetails";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { StringConstants } from "../StringConstants";
 
 export interface FinancialTableRowProps {
   row: FinancialTableRow;
+
+  isCompanyGood: any;
 }
 
 export function FinancialTableRowComponent(props: FinancialTableRowProps) {
-  const { row } = props;
+  const { row, isCompanyGood } = props;
+
+  const [companyPerformace, setCompanyPerformance] = useState<{
+    value: boolean | null;
+    title?: string;
+  }>({ value: null, title: "" });
+
+  useEffect(() => {
+    const companyPerf = isCompanyGood(row);
+    setCompanyPerformance(companyPerf);
+  }, [row]);
+
   let keyNumber = 1;
 
   const getBadgeTitle = (data: string) => {
@@ -31,22 +45,6 @@ export function FinancialTableRowComponent(props: FinancialTableRowProps) {
     return "";
   };
 
-  const isCompanyGood = useCallback(
-    (row: FinancialTableRow): { value: boolean; title?: string } => {
-      if (row.FIIsDataPercentChange < 0 && row.DIIsDataPercentChange < 0) {
-        return {
-          title: "Institution share is decreasing or not present",
-          value: false,
-        };
-      } else {
-        return {
-          value: true,
-        };
-      }
-    },
-    [row]
-  );
-
   return (
     <TableRow
       key={row.companyNo}
@@ -57,21 +55,28 @@ export function FinancialTableRowComponent(props: FinancialTableRowProps) {
         component="th"
         scope="row"
         title={
-          isCompanyGood(row).value
+          companyPerformace.value === null
             ? row.companyNo
-            : `${isCompanyGood(row).title} for ${row.companyNo}`
+            : `${companyPerformace.title} for ${row.companyNo}`
         }
       >
         <div style={{ display: "flex" }}>
           <div
             style={{
-              display: !isCompanyGood(row).value ? "block" : "none",
+              display: companyPerformace.value !== null ? "block" : "none",
               marginRight: "5px",
             }}
           >
-            <FlagIcon sx={{ color: "#ff3838" }} />
+            <FlagIcon
+              sx={{ color: companyPerformace.value ? "green" : "#ff3838" }}
+            />
           </div>
-          <div>{row.companyName}</div>
+          <Link
+            href={`${StringConstants.ScreenerCompany}${row.companyNo}`}
+            underline="none"
+          >
+            {row.companyName}
+          </Link>
         </div>
       </TableCell>
       <TableCell padding="none" align="center">

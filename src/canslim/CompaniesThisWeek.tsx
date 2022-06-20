@@ -1,15 +1,31 @@
+import {
+  Table,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TableBody,
+  Chip,
+  CircularProgress,
+} from "@mui/material";
 import { useEffect, useState } from "react";
 import { CanSlimCompanies } from "../interfaces/CanSlim";
 import { CompanyDetails } from "../interfaces/CompanyDetails";
+import Paper from "@mui/material/Paper";
+import { Box } from "@mui/system";
 
 interface CompaniesThisWeekProps {
   canSlimList: CanSlimCompanies[];
 
   companyDetailsMap: Map<string, CompanyDetails>;
+
+  loading: boolean;
 }
 
 export function CompaniesThisWeek(props: CompaniesThisWeekProps) {
-  const { canSlimList, companyDetailsMap } = props;
+  const { canSlimList, companyDetailsMap, loading } = props;
+
+  let indexNo: number = 1;
 
   const [categorywiseCompanies, setCategorywiseCompanies] = useState<{
     removedCompanies: string[];
@@ -58,80 +74,97 @@ export function CompaniesThisWeek(props: CompaniesThisWeekProps) {
 
   return (
     <>
-      <div id="newCompanies">
-        <h2> New Companies </h2>
-        {categorywiseCompanies?.newCompanies &&
-        categorywiseCompanies?.newCompanies.length > 0 ? (
-          <table>
-            <thead>
-              <tr>
-                <th>Company Name</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categorywiseCompanies?.newCompanies.map((data) => {
-                return (
-                  <tr key={companyDetailsMap.get(data)?._id}>
-                    <td>{companyDetailsMap.get(data)?.companyName}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        ) : (
-          <div>No Company added</div>
-        )}
-      </div>
+      {loading && (
+        <Box
+          sx={{
+            width: "100%",
+            position: "absolute",
+            left: window.innerWidth / 2,
+            top: window.innerHeight / 2,
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      )}
+      {!loading && (
+        <TableContainer component={Paper}>
+          <Table sx={{ minWidth: 650 }} aria-label="simple table" size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>S. No</TableCell>
+                <TableCell>Company No.</TableCell>
+                <TableCell>Latest Quarter</TableCell>
+                <TableCell>Company Name</TableCell>
+                <TableCell>Status</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {categorywiseCompanies?.newCompanies.map((data) => (
+                <TableRow
+                  key={companyDetailsMap.get(data)?._id}
+                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                >
+                  <TableCell>{indexNo++}</TableCell>
+                  <TableCell component="th" scope="row">
+                    {companyDetailsMap.get(data)?.companyNo}
+                  </TableCell>
+                  <TableCell>
+                    {companyDetailsMap.get(data)?.quartersData[0].quarterName}
+                  </TableCell>
+                  <TableCell>
+                    {companyDetailsMap.get(data)?.companyName}
+                  </TableCell>
+                  <TableCell>
+                    <Chip label="Newly Added" color="success" />
+                  </TableCell>
+                </TableRow>
+              ))}
 
-      <div id="existingCompanies">
-        <h2> Existing Companies </h2>
-        {categorywiseCompanies?.existingCompanies &&
-        categorywiseCompanies?.existingCompanies.length > 0 ? (
-          <table>
-            <thead>
-              <tr>
-                <th>Company Name</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categorywiseCompanies?.existingCompanies.map((data) => {
-                return (
-                  <tr key={companyDetailsMap.get(data)?._id}>
-                    <td>{companyDetailsMap.get(data)?.companyName}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        ) : (
-          <div>No Existing company</div>
-        )}
-      </div>
+              {categorywiseCompanies?.removedCompanies.map((data) => (
+                <TableRow
+                  key={companyDetailsMap.get(data)?._id}
+                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                >
+                  <TableCell>{indexNo++}</TableCell>
+                  <TableCell component="th" scope="row">
+                    {companyDetailsMap.get(data)?.companyNo}
+                  </TableCell>
+                  <TableCell>
+                    {companyDetailsMap.get(data)?.quartersData[0].quarterName}
+                  </TableCell>
+                  <TableCell>
+                    {companyDetailsMap.get(data)?.companyName}
+                  </TableCell>
+                  <TableCell>
+                    <Chip label="Removed" color="error" />
+                  </TableCell>
+                </TableRow>
+              ))}
 
-      <div id="existingCompanies">
-        <h2> Removed Companies </h2>
-        {categorywiseCompanies?.removedCompanies &&
-        categorywiseCompanies?.removedCompanies.length > 0 ? (
-          <table>
-            <thead>
-              <tr>
-                <th>Company Name</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categorywiseCompanies?.removedCompanies.map((data) => {
-                return (
-                  <tr key={companyDetailsMap.get(data)?._id}>
-                    <td>{companyDetailsMap.get(data)?.companyName}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        ) : (
-          <div>No Company removed</div>
-        )}
-      </div>
+              {categorywiseCompanies?.existingCompanies.map((data) => (
+                <TableRow
+                  key={companyDetailsMap.get(data)?._id}
+                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                >
+                  <TableCell>{indexNo++}</TableCell>
+                  <TableCell component="th" scope="row">
+                    {companyDetailsMap.get(data)?.companyNo}
+                  </TableCell>
+                  <TableCell>
+                    {companyDetailsMap.get(data)?.quartersData[0].quarterName}
+                  </TableCell>
+                  <TableCell>
+                    {companyDetailsMap.get(data)?.companyName}
+                  </TableCell>
+                  <TableCell>
+                    <Chip label="No Change" />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
     </>
   );
 }

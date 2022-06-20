@@ -1,3 +1,4 @@
+import { TableChartOutlined } from "@mui/icons-material";
 import { Box, Table, TableBody, TableContainer } from "@mui/material";
 import Paper from "@mui/material/Paper";
 import { useCallback, useEffect, useState } from "react";
@@ -14,10 +15,12 @@ import { FinancialTableRowComponent } from "./FinancialTableRowComponent";
 
 export interface FinancialsTableProps {
   rows: FinancialTableRow[];
+
+  positiveTechCompanies: string[];
 }
 
 export function FinancialsTable(props: FinancialsTableProps) {
-  const { rows } = props;
+  const { rows, positiveTechCompanies } = props;
 
   const [order, setOrder] = useState<Order>("desc");
   const [orderBy, setOrderBy] = useState<keyof FinancialTableRow>(
@@ -46,24 +49,34 @@ export function FinancialsTable(props: FinancialsTableProps) {
   };
 
   const isCompanyGood = useCallback(
-    (row: FinancialTableRow): { value: boolean; title?: string } => {
+    (row: FinancialTableRow): { value: boolean | null; title?: string } => {
       if (row.FIIsDataPercentChange < 0 && row.DIIsDataPercentChange < 0) {
         return {
           title: "Institution share is decreasing or not present",
           value: false,
         };
-      } else {
+      }
+      if (positiveTechCompanies.indexOf(row.companyNo) !== -1) {
         return {
           value: true,
+          title: "Technicals are good",
         };
       }
+      return {
+        value: null,
+      };
     },
     []
   );
 
   useEffect(() => {
-    const _poorCompanies = rows.filter((data) => !isCompanyGood(data).value);
-    const _goodCompanies = rows.filter((data) => isCompanyGood(data).value);
+    const _poorCompanies = rows.filter(
+      (data) => isCompanyGood(data).value === false
+    );
+    const _goodCompanies = rows.filter(
+      (data) =>
+        isCompanyGood(data).value === true || isCompanyGood(data).value === null
+    );
     setGoodCompanies(_goodCompanies);
     setPoorCompanies(_poorCompanies);
   }, [rows]);
@@ -85,12 +98,20 @@ export function FinancialsTable(props: FinancialsTableProps) {
               {stableSort(goodCompanies, getComparator(order, orderBy)).map(
                 (row) => {
                   return (
-                    <FinancialTableRowComponent row={row} key={row.companyNo} />
+                    <FinancialTableRowComponent
+                      row={row}
+                      key={row.companyNo}
+                      isCompanyGood={isCompanyGood}
+                    />
                   );
                 }
               )}
               {poorCompanies.map((row) => (
-                <FinancialTableRowComponent row={row} key={row.companyNo} />
+                <FinancialTableRowComponent
+                  row={row}
+                  key={row.companyNo}
+                  isCompanyGood={isCompanyGood}
+                />
               ))}
             </TableBody>
           </Table>

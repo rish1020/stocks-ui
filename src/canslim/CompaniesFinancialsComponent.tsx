@@ -15,10 +15,12 @@ import {
 
 export interface CompanyDetailsProps {
   companyDetails: CompanyDetails[];
+
+  positiveTechCompanies: string[];
 }
 
 export function CompaniesFinancialsComponent(props: CompanyDetailsProps) {
-  const { companyDetails } = props;
+  const { companyDetails, positiveTechCompanies } = props;
 
   const [financialRows, setFinancialRows] = useState<any[]>([]);
 
@@ -90,7 +92,10 @@ export function CompaniesFinancialsComponent(props: CompanyDetailsProps) {
     <>
       {financialRows.length > 0 && (
         <div>
-          <FinancialsTable rows={financialRows} />
+          <FinancialsTable
+            rows={financialRows}
+            positiveTechCompanies={positiveTechCompanies}
+          />
         </div>
       )}
     </>

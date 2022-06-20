@@ -9,8 +9,9 @@ import { CompaniesThisWeek } from "./CompaniesThisWeek";
 import { CanSlimCompanies } from "../interfaces/CanSlim";
 import { CompanyDetails } from "../interfaces/CompanyDetails";
 import { CompaniesFinancialsComponent } from "./CompaniesFinancialsComponent";
+import { AppBar, Box, Button, Tab, Tabs, Typography } from "@mui/material";
 
-enum Section {
+enum div {
   CompaniesThisWeek = "CompaniesThisWeek",
   CompaniesFinancials = "CompaniesFinancials",
 }
@@ -18,35 +19,50 @@ enum Section {
 export function CanSlim() {
   const [companyDetails, setCompanyDetails] = useState<CompanyDetails[]>([]);
 
-  const [section, setSection] = useState<Section>(Section.CompaniesFinancials);
+  const [value, setValue] = useState(0);
 
   const [canSlimList, setCanSlimList] = useState<any[]>([]);
+
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const [positiveTechnicalCompanies, setPositiveTechnicalCompanies] = useState<
+    string[]
+  >([]);
 
   const [companyDetailsMap, setCompanyDetailsMap] = useState(
     new Map<string, CompanyDetails>()
   );
 
   useEffect(() => {
-    console.log("inside effect", canSlimList);
     if (canSlimList.length === 0) {
-      getCanSlimList()
-        .then((data) => {
-          // Set only last 2 weeks data
-          const noOfWeeks = 2;
-          const sortedData = data.sort(
-            (a: CanSlimCompanies, b: CanSlimCompanies) => {
-              return new Date(a.date).getTime() - new Date(b.date).getTime() >=
-                0
-                ? -1
-                : 1;
-            }
-          );
-          const newData = sortedData.splice(0, noOfWeeks);
-          setCanSlimList(newData);
-        })
-        .catch((err) => alert(err));
+      setLoading(true);
+      getCanSlimData();
     }
   }, []);
+
+  function getCanSlimData() {
+    getCanSlimList()
+      .then((data) => {
+        // Set only last 2 weeks data
+        const noOfWeeks = 2;
+        const sortedData = data.sort(
+          (a: CanSlimCompanies, b: CanSlimCompanies) => {
+            return new Date(a.date).getTime() - new Date(b.date).getTime() >= 0
+              ? -1
+              : 1;
+          }
+        );
+        const newData = sortedData.splice(0, noOfWeeks);
+        const postiveTechCompanies = newData[0].positiveTechnicals;
+        setPositiveTechnicalCompanies(postiveTechCompanies);
+        setCanSlimList(newData);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setLoading(false);
+        alert(err);
+      });
+  }
 
   useEffect(() => {
     canSlimList.length && getLastNWeeksCanSlimCompanyDetails(canSlimList);
@@ -76,42 +92,77 @@ export function CanSlim() {
   }
 
   function updateCanSlimCompanies() {
+    setLoading(true);
     updateCanSlim().then(() => {
-      console.log("done updating companies");
+      setLoading(false);
+      getCanSlimData();
     });
-    console.log(canSlimList);
   }
+
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    setValue(newValue);
+  };
 
   return (
     <>
-      <section>
-        <button onClick={() => setSection(Section.CompaniesThisWeek)}>
-          Companies this week
-        </button>
-        <button onClick={() => setSection(Section.CompaniesFinancials)}>
-          Companies Details
-        </button>
-      </section>
-
-      {section === Section.CompaniesThisWeek && companyDetailsMap.size > 0 && (
-        <section>
-          <section>
-            <button onClick={updateCanSlimCompanies}>Update</button>
-          </section>
-          <section>
-            <CompaniesThisWeek
-              canSlimList={canSlimList}
-              companyDetailsMap={companyDetailsMap}
+      <Box sx={{ width: "100%" }}>
+        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+          <Tabs
+            value={value}
+            onChange={handleChange}
+            aria-label="basic tabs example"
+          >
+            <Tab label="Companies this week" />
+            <Tab label="Companies Details" />
+          </Tabs>
+        </Box>
+        <TabPanel value={value} index={0}>
+          <div>
+            <div style={{ float: "right", margin: "10px" }}>
+              <Button onClick={updateCanSlimCompanies} variant="contained">
+                Update Companies
+              </Button>
+            </div>
+            <div>
+              <CompaniesThisWeek
+                canSlimList={canSlimList}
+                companyDetailsMap={companyDetailsMap}
+                loading={loading}
+              />
+            </div>
+          </div>
+        </TabPanel>
+        <TabPanel value={value} index={1}>
+          <div>
+            <CompaniesFinancialsComponent
+              companyDetails={companyDetails}
+              positiveTechCompanies={positiveTechnicalCompanies}
             />
-          </section>
-        </section>
-      )}
-
-      {section === Section.CompaniesFinancials && (
-        <section>
-          <CompaniesFinancialsComponent companyDetails={companyDetails} />
-        </section>
-      )}
+          </div>
+        </TabPanel>
+      </Box>
     </>
+  );
+}
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && <div>{children}</div>}
+    </div>
   );
 }

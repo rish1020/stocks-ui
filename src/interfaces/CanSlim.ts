@@ -4,4 +4,6 @@ export interface CanSlimCompanies {
   date: string;
 
   companies: string[];
+
+  positiveTechnicals: string[];
 }
