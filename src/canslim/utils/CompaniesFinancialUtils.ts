@@ -93,12 +93,48 @@ export const getInstitutionGrowthRate = (
   }
 };
 
+const ifEPSGrowthRateSlowdownHappened = (
+  current: number,
+  previous: number
+): boolean => {
+  if (current > previous) {
+    return false;
+  }
+
+  const slowdownRate = ((previous - current) / previous) * 100;
+  if (isNaN(slowdownRate)) {
+    return false;
+  }
+  if (slowdownRate > 67) {
+    return true;
+  }
+  return false;
+};
+
 export function getBadgesForCompany(company: CompanyDetails) {
   const { quartersData, yearsData, shareholdingPattern } = company;
   let badges = [];
   const currentQuarterEPS = getEPSGrowthRate(quartersData[0], quartersData[4]);
   const previousQuarterEPS = getEPSGrowthRate(quartersData[1], quartersData[5]);
-  if (currentQuarterEPS > 40 && previousQuarterEPS > 40) {
+  const secondPreviousQuarterEPS = getEPSGrowthRate(
+    quartersData[2],
+    quartersData[6]
+  );
+
+  const previousQuarterGrowthSlowdown = ifEPSGrowthRateSlowdownHappened(
+    previousQuarterEPS,
+    secondPreviousQuarterEPS
+  );
+
+  const currentQuarterGrowthSlowdown = ifEPSGrowthRateSlowdownHappened(
+    currentQuarterEPS,
+    previousQuarterEPS
+  );
+  if (
+    currentQuarterEPS > 40 &&
+    previousQuarterEPS > 40 &&
+    (!previousQuarterGrowthSlowdown || !currentQuarterGrowthSlowdown)
+  ) {
     badges.push(FinancialBadge.Q);
   }
 
