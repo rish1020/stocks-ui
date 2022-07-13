@@ -10,11 +10,7 @@ import { CanSlimCompanies } from "../interfaces/CanSlim";
 import { CompanyDetails } from "../interfaces/CompanyDetails";
 import { CompaniesFinancialsComponent } from "./CompaniesFinancialsComponent";
 import { AppBar, Box, Button, Tab, Tabs, Typography } from "@mui/material";
-
-enum div {
-  CompaniesThisWeek = "CompaniesThisWeek",
-  CompaniesFinancials = "CompaniesFinancials",
-}
+import { TabPanel } from "../material-ui/TabPanel";
 
 export function CanSlim() {
   const [companyDetails, setCompanyDetails] = useState<CompanyDetails[]>([]);
@@ -142,27 +138,5 @@ export function CanSlim() {
         </TabPanel>
       </Box>
     </>
-  );
-}
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && <div>{children}</div>}
-    </div>
   );
 }

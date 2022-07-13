@@ -47,3 +47,33 @@ export async function getCanSlimList() {
     throw err;
   }
 }
+
+export async function getStoredBreakoutCompanies() {
+  try {
+    const response = await fetch(
+      `${origin}/${APIConstants.STORED_BREAKOUT_COMPANIES}`
+    );
+    if (response.status != 200) {
+      throw new Error(`Failed to get response - status ${response.status}`);
+    }
+    const data = await response.json();
+    return Promise.resolve(data);
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function updateBreakoutCompanies() {
+  try {
+    const response = await fetch(
+      `${origin}/${APIConstants.UPDATE_BREAKOUT_COMPANIES}`
+    );
+    if (response.status != 200) {
+      throw new Error(`Failed to get response - status ${response.status}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    throw err;
+  }
+}
