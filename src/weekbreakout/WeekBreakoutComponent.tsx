@@ -18,6 +18,7 @@ export function WeekBreakoutComponent(props: WeekBreakoutComponentProps) {
   const [breakoutCompanies, setBreakoutCompanies] = useState([]);
   const [smallMidCapLowDebtCompanies, setSmallMidCapLowDebtCompanies] =
     useState([]);
+  const [breakoutCompaniesStatus, setBreakoutCompaniesStatus] = useState({});
 
   const [loading, setLoading] = useState(false);
 
@@ -38,6 +39,7 @@ export function WeekBreakoutComponent(props: WeekBreakoutComponentProps) {
         setSmallMidCapLowDebtCompanies(
           data.smallMidCapLowDebtCompanies.companies
         );
+        setBreakoutCompaniesStatus(data.dateStatus);
         setLoading(false);
       })
       .catch((error) => {
@@ -156,6 +158,7 @@ export function WeekBreakoutComponent(props: WeekBreakoutComponentProps) {
               updateTradingViewForBreakouts={updateTradingViewForBreakouts}
               watchListCompanies={watchListCompanies}
               updateWatchListCompany={updateWatchListCompany}
+              breakoutCompaniesStatus={breakoutCompaniesStatus}
             />
           </div>
         </TabPanel>
@@ -165,6 +168,7 @@ export function WeekBreakoutComponent(props: WeekBreakoutComponentProps) {
               watchListCompanies={watchListCompanies}
               loading={loading}
               updateNoteForCompany={updateNoteForCompany}
+              updateWatchListCompany={updateWatchListCompany}
             />
           </div>
         </TabPanel>

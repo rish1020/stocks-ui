@@ -13,8 +13,10 @@ import {
   TextField,
 } from "@mui/material";
 import React, { ChangeEventHandler, useEffect, useState } from "react";
+import { BreakoutCompany } from "../interfaces/BreakoutCompany";
 import { BreakoutWatchListCompany } from "../interfaces/BreakoutWatchListCompany";
 import * as ApiService from "../services/ApiService";
+import { WatchlistClickOperation } from "./WeeklyBreakoutCompanies";
 
 export interface WeeklyBreakoutWatchlistComponentProps {
   loading: boolean;
@@ -22,12 +24,22 @@ export interface WeeklyBreakoutWatchlistComponentProps {
   watchListCompanies: BreakoutWatchListCompany[];
 
   updateNoteForCompany: (note: string, index: number) => void;
+
+  updateWatchListCompany: (
+    company: BreakoutCompany,
+    clickOp: WatchlistClickOperation
+  ) => void;
 }
 
 export function WeeklyBreakoutWatchlistComponent(
   props: WeeklyBreakoutWatchlistComponentProps
 ) {
-  const { loading, watchListCompanies, updateNoteForCompany } = props;
+  const {
+    loading,
+    watchListCompanies,
+    updateNoteForCompany,
+    updateWatchListCompany,
+  } = props;
 
   const [companies, setCompanies] = useState<BreakoutWatchListCompany[]>([]);
 
@@ -118,37 +130,55 @@ export function WeeklyBreakoutWatchlistComponent(
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {watchListCompanies.map((company, index) => (
-                    <TableRow
-                      key={company.ID}
-                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                    >
-                      <TableCell>{indexNo++}</TableCell>
-                      <TableCell component="th" scope="row">
-                        {company.Symb}
-                      </TableCell>
-                      <TableCell>{company.Name}</TableCell>
-                      <TableCell>{company.Info.C1}</TableCell>
-                      <TableCell>{company.Info.NYH}</TableCell>
-                      <TableCell>{company.Info.NYHZG.toFixed(1)}</TableCell>
-                      <TableCell>
-                        <TextField
-                          id={index.toString()}
-                          multiline
-                          hiddenLabel
-                          maxRows={2}
-                          fullWidth
-                          value={notes[index]}
-                          onChange={handleNotesChange}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Button onClick={() => updateNotes(index)}>
-                          Update
-                        </Button>
+                  {watchListCompanies.length > 0 ? (
+                    watchListCompanies.map((company, index) => (
+                      <TableRow
+                        key={company.ID}
+                        sx={{
+                          "&:last-child td, &:last-child th": { border: 0 },
+                        }}
+                      >
+                        <TableCell>{indexNo++}</TableCell>
+                        <TableCell component="th" scope="row">
+                          {company.Symb}
+                        </TableCell>
+                        <TableCell>{company.Name}</TableCell>
+                        <TableCell>{company.Info.C1}</TableCell>
+                        <TableCell>{company.Info.NYH}</TableCell>
+                        <TableCell>{company.Info.NYHZG.toFixed(1)}</TableCell>
+                        <TableCell>
+                          <TextField
+                            id={index.toString()}
+                            multiline
+                            hiddenLabel
+                            maxRows={2}
+                            fullWidth
+                            value={notes[index]}
+                            onChange={handleNotesChange}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Button onClick={() => updateNotes(index)}>
+                            Update
+                          </Button>
+                          <Button
+                            color="error"
+                            onClick={() =>
+                              updateWatchListCompany(company, "Remove")
+                            }
+                          >
+                            Remove
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow key={"no-data"}>
+                      <TableCell colSpan={8} style={{ textAlign: "center" }}>
+                        No companies
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>

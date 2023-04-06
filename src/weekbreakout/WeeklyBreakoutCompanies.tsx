@@ -3,7 +3,15 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  FormControlLabel,
   Paper,
+  Radio,
+  RadioGroup,
   Table,
   TableBody,
   TableCell,
@@ -34,6 +42,8 @@ export interface WeekBreakoutCompaniesProps {
     company: BreakoutCompany,
     clickOp: WatchlistClickOperation
   ) => void;
+
+  breakoutCompaniesStatus: any;
 }
 
 export type WatchlistClickOperation = "Add" | "Remove" | "Update";
@@ -57,15 +67,22 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
     updateTradingViewForBreakouts,
     watchListCompanies,
     updateWatchListCompany,
+    breakoutCompaniesStatus,
   } = props;
 
   const [filteredBreakoutCompanies, setFilteredBreakoutCompanies] = useState<
     BreakoutCompany[]
   >([]);
+  const [tradingViewDialog] = useState(false);
 
   const [searchedCompanies, setSearchedCompanies] = useState<BreakoutCompany[]>(
     []
   );
+  const [exchange, setExchange] = React.useState("All");
+  const [dialogContent, setDialogContent] = React.useState<{
+    content: string;
+    callback: () => void;
+  }>({ content: "", callback: () => {} });
 
   let indexNo = 1;
   const [watchlistCompaniesNameList, setWatchListCompaniesNameList] = useState<
@@ -100,8 +117,42 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
     list.length && setWatchListCompaniesNameList(list);
   }, [watchListCompanies]);
 
+  useEffect(() => {
+    if (exchange === "All") {
+      setSearchedCompanies(filteredBreakoutCompanies);
+    } else {
+      const exchangeCompanies = filteredBreakoutCompanies.filter(
+        (company) => company.Exch.toLowerCase() === exchange.toLowerCase()
+      );
+      setSearchedCompanies(exchangeCompanies);
+    }
+  }, [exchange, filteredBreakoutCompanies]);
+
   function updateTradingView() {
-    updateTradingViewForBreakouts(filteredBreakoutCompanies);
+    if (exchange === "BSE") {
+      setDialogContent({
+        content: `BSE companies will not be updated in trading view.`,
+        callback: () => {
+          setDialogContent({ content: "", callback: () => {} });
+        },
+      });
+    } else if (exchange === "NSE") {
+      setDialogContent({
+        content: `The trading view will be updated for ${exchange} exchange`,
+        callback: () => {
+          setDialogContent({ content: "", callback: () => {} });
+          updateTradingViewForBreakouts(filteredBreakoutCompanies);
+        },
+      });
+    } else {
+      setDialogContent({
+        content: `The trading view will be updated for NSE exchange only`,
+        callback: () => {
+          setDialogContent({ content: "", callback: () => {} });
+          updateTradingViewForBreakouts(filteredBreakoutCompanies);
+        },
+      });
+    }
   }
 
   const getWatchlistModel = useCallback(
@@ -126,10 +177,22 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
 
   const onTextChanged = (elem: React.ChangeEvent<HTMLInputElement>) => {
     const curValue = elem.currentTarget.value.toLowerCase();
-    const newCompanies = filteredBreakoutCompanies.filter(
+    let exchangeCompanies = [];
+    if (exchange === "All") {
+      exchangeCompanies = filteredBreakoutCompanies;
+    } else {
+      exchangeCompanies = filteredBreakoutCompanies.filter(
+        (company) => company.Exch.toLowerCase() === exchange.toLowerCase()
+      );
+    }
+    const newCompanies = exchangeCompanies.filter(
       (data) => data.Name.toLowerCase().indexOf(curValue) !== -1
     );
     setSearchedCompanies(newCompanies);
+  };
+
+  const handleDialogClose = () => {
+    setDialogContent({ content: "", callback: () => {} });
   };
 
   return (
@@ -165,6 +228,7 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
               Update Tradingview
             </Button>
           </div>
+
           <div id="breakout-companies">
             <div id="filter-labels" style={{ margin: "6px" }}>
               <Chip
@@ -182,6 +246,33 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
                 color="default"
                 style={{ margin: "3px" }}
               />
+            </div>
+            <div style={{ margin: 10 }}>
+              <RadioGroup
+                row
+                aria-labelledby="demo-row-radio-buttons-group-label"
+                name="row-radio-buttons-group"
+                value={exchange}
+                onChange={(ev) => setExchange(ev.target.value)}
+              >
+                <FormControlLabel value="All" control={<Radio />} label="All" />
+                <FormControlLabel value="NSE" control={<Radio />} label="NSE" />
+                <FormControlLabel value="BSE" control={<Radio />} label="BSE" />
+              </RadioGroup>
+            </div>
+
+            <div style={{ float: "right", margin: "10px" }}>
+              <div>
+                <span style={{ fontWeight: "bold" }}>Last Updated: </span>
+                {new Date(breakoutCompaniesStatus.lastUpdatedAt).toDateString()}
+              </div>
+              <div>
+                <span style={{ fontWeight: "bold" }}>Last Trading day : </span>
+
+                {new Date(
+                  breakoutCompaniesStatus.latestTradingDay
+                ).toDateString()}
+              </div>
             </div>
 
             <div style={{ margin: "6px" }}>
@@ -243,6 +334,24 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
               </Table>
             </TableContainer>
           </div>
+          <Dialog
+            open={dialogContent.content.length > 0}
+            onClose={handleDialogClose}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+          >
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                {dialogContent.content}
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleDialogClose}>Disagree</Button>
+              <Button onClick={dialogContent.callback} autoFocus>
+                Agree
+              </Button>
+            </DialogActions>
+          </Dialog>
         </div>
       )}
     </>
