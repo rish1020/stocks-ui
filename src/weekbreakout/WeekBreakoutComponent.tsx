@@ -111,10 +111,19 @@ export function WeekBreakoutComponent(props: WeekBreakoutComponentProps) {
       });
   };
 
-  async function updateTradingViewForBreakouts(data: BreakoutCompany[]) {
+  async function updateTradingViewForBreakouts(
+    data: BreakoutCompany[],
+    emailId: string
+  ) {
     try {
-      await ApiService.updateTradingViewForBreakouts(data);
-    } catch (error) {}
+      setLoading(true);
+      await ApiService.updateTradingViewForBreakouts(data, emailId);
+      setLoading(false);
+    } catch (error: any) {
+      setLoading(false);
+      console.log(error);
+      alert(error);
+    }
   }
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {

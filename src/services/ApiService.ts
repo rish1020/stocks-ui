@@ -81,12 +81,13 @@ export async function updateBreakoutCompanies() {
 }
 
 export async function updateTradingViewForBreakouts(
-  payload: BreakoutCompany[]
+  payload: BreakoutCompany[],
+  emailId: string
 ) {
   try {
     console.log(JSON.stringify(payload));
     const response = await fetch(
-      `${origin}/${APIConstants.UPDATE_TRADING_VIEW_FOR_BREAKOUT_COMPANIES}`,
+      `${origin}/${APIConstants.UPDATE_TRADING_VIEW_FOR_BREAKOUT_COMPANIES}?emailId=${emailId}`,
       {
         method: "POST",
         body: JSON.stringify(payload),
@@ -96,10 +97,10 @@ export async function updateTradingViewForBreakouts(
         },
       }
     );
-    if (response.status != 200) {
-      throw new Error(`Failed to get response - status ${response.status}`);
-    }
     const data = await response.json();
+    if (response.status != 200) {
+      throw new Error(data.message);
+    }
     return data;
   } catch (err) {
     throw err;

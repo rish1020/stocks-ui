@@ -9,9 +9,12 @@ import {
   DialogContentText,
   DialogTitle,
   FormControlLabel,
+  MenuItem,
   Paper,
   Radio,
   RadioGroup,
+  Select,
+  SelectChangeEvent,
   Table,
   TableBody,
   TableCell,
@@ -34,7 +37,10 @@ export interface WeekBreakoutCompaniesProps {
 
   updateBreakoutCompanies: () => void;
 
-  updateTradingViewForBreakouts: (data: BreakoutCompany[]) => void;
+  updateTradingViewForBreakouts: (
+    data: BreakoutCompany[],
+    emailId: string
+  ) => void;
 
   watchListCompanies: BreakoutWatchListCompany[];
 
@@ -78,7 +84,8 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
   const [searchedCompanies, setSearchedCompanies] = useState<BreakoutCompany[]>(
     []
   );
-  const [exchange, setExchange] = React.useState("All");
+  const [exchange, setExchange] = React.useState("NSE");
+  const [email, setEmail] = React.useState("");
   const [dialogContent, setDialogContent] = React.useState<{
     content: string;
     callback: () => void;
@@ -91,7 +98,11 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
 
   useEffect(() => {
     const companiesAfterFilter1 = breakoutCompanies.filter((company) => {
-      return company.Info.C1 >= 30 && company.Info.C1 <= 500;
+      return (
+        company.Info.C1 >= 30 &&
+        company.Info.C1 <= 500 &&
+        Math.abs(company.Info.NYHZG) <= 10
+      );
     });
 
     const companiesAfterFilter2 = companiesAfterFilter1.filter((company) => {
@@ -129,30 +140,10 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
   }, [exchange, filteredBreakoutCompanies]);
 
   function updateTradingView() {
-    if (exchange === "BSE") {
-      setDialogContent({
-        content: `BSE companies will not be updated in trading view.`,
-        callback: () => {
-          setDialogContent({ content: "", callback: () => {} });
-        },
-      });
-    } else if (exchange === "NSE") {
-      setDialogContent({
-        content: `The trading view will be updated for ${exchange} exchange`,
-        callback: () => {
-          setDialogContent({ content: "", callback: () => {} });
-          updateTradingViewForBreakouts(filteredBreakoutCompanies);
-        },
-      });
-    } else {
-      setDialogContent({
-        content: `The trading view will be updated for NSE exchange only`,
-        callback: () => {
-          setDialogContent({ content: "", callback: () => {} });
-          updateTradingViewForBreakouts(filteredBreakoutCompanies);
-        },
-      });
-    }
+    setDialogContent({
+      content: `All the companies will be updated in trading view`,
+      callback: () => {},
+    });
   }
 
   const getWatchlistModel = useCallback(
@@ -193,6 +184,11 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
 
   const handleDialogClose = () => {
     setDialogContent({ content: "", callback: () => {} });
+  };
+
+  const handleEmailChange = (event: SelectChangeEvent) => {
+    console.log("changing email id", event.target.value);
+    setEmail(event.target.value as string);
   };
 
   return (
@@ -246,19 +242,7 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
                 color="default"
                 style={{ margin: "3px" }}
               />
-            </div>
-            <div style={{ margin: 10 }}>
-              <RadioGroup
-                row
-                aria-labelledby="demo-row-radio-buttons-group-label"
-                name="row-radio-buttons-group"
-                value={exchange}
-                onChange={(ev) => setExchange(ev.target.value)}
-              >
-                <FormControlLabel value="All" control={<Radio />} label="All" />
-                <FormControlLabel value="NSE" control={<Radio />} label="NSE" />
-                <FormControlLabel value="BSE" control={<Radio />} label="BSE" />
-              </RadioGroup>
+              <Chip label="NSE" color="default" style={{ margin: "3px" }} />
             </div>
 
             <div style={{ float: "right", margin: "10px" }}>
@@ -341,13 +325,46 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
             aria-describedby="alert-dialog-description"
           >
             <DialogContent>
-              <DialogContentText id="alert-dialog-description">
+              <DialogContentText
+                id="alert-dialog-description"
+                style={{ margin: "10px 0" }}
+              >
                 {dialogContent.content}
               </DialogContentText>
+              <Select
+                labelId="demo-simple-select-label"
+                id="demo-simple-select"
+                value={email}
+                label="Age"
+                onChange={handleEmailChange}
+                style={{
+                  minWidth: 230,
+                }}
+              >
+                <MenuItem value={"arya.arya.rishab@gmail.com"}>
+                  arya.arya.rishab@gmail.com
+                </MenuItem>
+                <MenuItem value={"rishav.arya2720@gmail.com"}>
+                  rishav.arya2720@gmail.com
+                </MenuItem>
+                <MenuItem value={"rishav.arya1020@gmail.com"}>
+                  rishav.arya1020@gmail.com
+                </MenuItem>
+              </Select>
             </DialogContent>
             <DialogActions>
               <Button onClick={handleDialogClose}>Disagree</Button>
-              <Button onClick={dialogContent.callback} autoFocus>
+              <Button
+                onClick={() => {
+                  setDialogContent({ content: "", callback: () => {} });
+                  updateTradingViewForBreakouts(
+                    filteredBreakoutCompanies,
+                    email
+                  );
+                }}
+                autoFocus
+                disabled={email.length === 0}
+              >
                 Agree
               </Button>
             </DialogActions>
