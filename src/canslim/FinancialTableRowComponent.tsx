@@ -7,15 +7,34 @@ import FlagIcon from "@mui/icons-material/Flag";
 import { CompanyDetails } from "../interfaces/CompanyDetails";
 import { useCallback, useEffect, useState } from "react";
 import { StringConstants } from "../StringConstants";
+import { AddWatchListComponent } from "./AddWatchListComponent";
+import { BreakoutWatchListCompany } from "../interfaces/BreakoutWatchListCompany";
+import { BreakoutCompany } from "../interfaces/BreakoutCompany";
+import { WatchlistClickOperation } from "../weekbreakout/WeeklyBreakoutCompanies";
 
 export interface FinancialTableRowProps {
   row: FinancialTableRow;
 
   isCompanyGood: any;
+
+  watchListCompanies: BreakoutWatchListCompany[];
+
+  updateWatchListCompany: (
+    company: BreakoutCompany,
+    clickOp: WatchlistClickOperation
+  ) => void;
+
+  company: BreakoutWatchListCompany;
 }
 
 export function FinancialTableRowComponent(props: FinancialTableRowProps) {
-  const { row, isCompanyGood } = props;
+  const {
+    row,
+    isCompanyGood,
+    watchListCompanies,
+    updateWatchListCompany,
+    company,
+  } = props;
 
   const [companyPerformace, setCompanyPerformance] = useState<{
     value: boolean | null;
@@ -74,6 +93,7 @@ export function FinancialTableRowComponent(props: FinancialTableRowProps) {
           <Link
             href={`${StringConstants.ScreenerCompany}${row.companyNo}`}
             underline="none"
+            target="_blank"
           >
             {row.companyName}
           </Link>
@@ -146,6 +166,13 @@ export function FinancialTableRowComponent(props: FinancialTableRowProps) {
       </TableCell>
       <TableCell padding="none" align="center">
         {row.DIIsDataPercentChange}
+      </TableCell>
+      <TableCell padding="none" align="center">
+        <AddWatchListComponent
+          watchListCompanies={watchListCompanies}
+          company={company}
+          updateWatchListCompany={updateWatchListCompany}
+        />
       </TableCell>
     </TableRow>
   );

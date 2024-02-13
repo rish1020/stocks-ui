@@ -15,8 +15,8 @@ import {
 import React, { ChangeEventHandler, useEffect, useState } from "react";
 import { BreakoutCompany } from "../interfaces/BreakoutCompany";
 import { BreakoutWatchListCompany } from "../interfaces/BreakoutWatchListCompany";
-import * as ApiService from "../services/ApiService";
 import { WatchlistClickOperation } from "./WeeklyBreakoutCompanies";
+import { UpdateTradingView } from "../canslim/UpdateTradingView";
 
 export interface WeeklyBreakoutWatchlistComponentProps {
   loading: boolean;
@@ -41,24 +41,9 @@ export function WeeklyBreakoutWatchlistComponent(
     updateWatchListCompany,
   } = props;
 
-  const [companies, setCompanies] = useState<BreakoutWatchListCompany[]>([]);
-
   const [notes, setNotes] = useState<string[]>([]);
 
   let indexNo = 1;
-
-  const fetchCompanyDetails = () => {
-    const companyNos = watchListCompanies.map((data) => {
-      return { companyNo: data.Symb };
-    });
-    ApiService.updateCompanyDetails(companyNos)
-      .then((data) => {
-        alert("Fetch completed");
-      })
-      .catch((error) => {
-        alert(error);
-      });
-  };
 
   useEffect(() => {
     const notes = watchListCompanies.map((data) => data.Notes || "");
@@ -102,13 +87,7 @@ export function WeeklyBreakoutWatchlistComponent(
       {!loading && (
         <div>
           <div style={{ float: "right", margin: "10px" }}>
-            <Button
-              onClick={fetchCompanyDetails}
-              variant="contained"
-              style={{ margin: "5px" }}
-            >
-              Fetch Company Details
-            </Button>
+            <UpdateTradingView companies={watchListCompanies} />
           </div>
           <div id="breakout-companies">
             <TableContainer component={Paper}>

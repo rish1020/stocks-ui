@@ -2,6 +2,7 @@ import {
   CompanyDetails,
   ShareHolderType,
   ShareHoldingPattern,
+  YearData,
 } from "../../interfaces/CompanyDetails";
 import { FinancialBadge } from "../../interfaces/FinancialTableInterfaces";
 
@@ -111,6 +112,13 @@ const ifEPSGrowthRateSlowdownHappened = (
   return false;
 };
 
+const getInitialYear = (yearsData: YearData[]) => {
+  if (yearsData[0].yearName === "TTM") {
+    return 1;
+  }
+  return 0;
+};
+
 export function getBadgesForCompany(company: CompanyDetails) {
   const { quartersData, yearsData, shareholdingPattern } = company;
   let badges = [];
@@ -131,8 +139,8 @@ export function getBadgesForCompany(company: CompanyDetails) {
     previousQuarterEPS
   );
   if (
-    currentQuarterEPS > 40 &&
-    previousQuarterEPS > 40 &&
+    currentQuarterEPS > 30 &&
+    previousQuarterEPS > 30 &&
     (!previousQuarterGrowthSlowdown || !currentQuarterGrowthSlowdown)
   ) {
     badges.push(FinancialBadge.Q);
@@ -145,10 +153,19 @@ export function getBadgesForCompany(company: CompanyDetails) {
   if (currentQuarterSales > 25) {
     badges.push(FinancialBadge.S);
   }
-
-  const yearlyEPS1 = getEPSGrowthRate(yearsData[0], yearsData[1]);
-  const yearlyEPS2 = getEPSGrowthRate(yearsData[1], yearsData[2]);
-  const yearlyEPS3 = getEPSGrowthRate(yearsData[2], yearsData[3]);
+  const initialYear = getInitialYear(yearsData);
+  const yearlyEPS1 = getEPSGrowthRate(
+    yearsData[initialYear],
+    yearsData[initialYear + 1]
+  );
+  const yearlyEPS2 = getEPSGrowthRate(
+    yearsData[initialYear + 1],
+    yearsData[initialYear + 2]
+  );
+  const yearlyEPS3 = getEPSGrowthRate(
+    yearsData[initialYear + 2],
+    yearsData[initialYear + 3]
+  );
 
   if (yearlyEPS1 > 20 && yearlyEPS2 > 0 && yearlyEPS3 > 0) {
     badges.push(FinancialBadge.A);

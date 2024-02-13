@@ -12,6 +12,17 @@ import {
 import { visuallyHidden } from "@mui/utils";
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
+  if (orderBy === "badge") {
+    const aLength = (a as any).badge.split(",").join().length;
+    const bLength = (b as any).badge.split(",").join().length;
+    if (bLength < aLength) {
+      return -1;
+    }
+    if (bLength > aLength) {
+      return 1;
+    }
+    return 0;
+  }
   if (b[orderBy] < a[orderBy]) {
     return -1;
   }

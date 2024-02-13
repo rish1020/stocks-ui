@@ -12,17 +12,56 @@ import {
   getInstitutionGrowthRate,
   getSalesGrowthRate,
 } from "./utils/CompaniesFinancialUtils";
+import { BreakoutWatchListCompany } from "../interfaces/BreakoutWatchListCompany";
+import { BreakoutCompany } from "../interfaces/BreakoutCompany";
+import { WatchlistClickOperation } from "../weekbreakout/WeeklyBreakoutCompanies";
 
 export interface CompanyDetailsProps {
   companyDetails: CompanyDetails[];
 
   positiveTechCompanies: string[];
+
+  watchListCompanies: BreakoutWatchListCompany[];
+
+  updateWatchListCompany: (
+    company: BreakoutCompany,
+    clickOp: WatchlistClickOperation
+  ) => void;
+
+  breakoutCompanies: BreakoutCompany[];
 }
 
 export function CompaniesFinancialsComponent(props: CompanyDetailsProps) {
-  const { companyDetails, positiveTechCompanies } = props;
+  const {
+    companyDetails,
+    positiveTechCompanies,
+    watchListCompanies,
+    updateWatchListCompany,
+    breakoutCompanies,
+  } = props;
 
   const [financialRows, setFinancialRows] = useState<any[]>([]);
+
+  const removePercentFromShareholdings = useCallback(
+    (shareholdingPatterns: ShareHoldingPattern[]) => {
+      for (const shareholdingPattern of shareholdingPatterns) {
+        for (const type of [
+          ShareHolderType.DIIs,
+          ShareHolderType.FIIs,
+          ShareHolderType.Government,
+          ShareHolderType.Promoters,
+          ShareHolderType.Public,
+        ]) {
+          const typePattern = shareholdingPattern[type];
+          if (typePattern && typePattern.indexOf("%") !== -1) {
+            shareholdingPattern[type] = typePattern.split("%")[0];
+          }
+        }
+      }
+      return shareholdingPatterns;
+    },
+    []
+  );
 
   useEffect(() => {
     const rows = companyDetails.map((data) => getFinancialRow(data));
@@ -37,11 +76,12 @@ export function CompaniesFinancialsComponent(props: CompanyDetailsProps) {
       yearsData,
       shareholdingPattern,
     } = company;
-
+    const newShareholdingPattern: ShareHoldingPattern[] =
+      removePercentFromShareholdings(shareholdingPattern);
     return {
       companyNo,
       companyName,
-      latestQuarter: quartersData[0].quarterName,
+      latestQuarter: quartersData[0]?.quarterName,
       quarterlyEPSSecondPrevious: getEPSGrowthRate(
         quartersData[2],
         quartersData[6]
@@ -67,21 +107,23 @@ export function CompaniesFinancialsComponent(props: CompanyDetailsProps) {
         quartersData[4]
       ),
       DIIsDataLatest:
-        shareholdingPattern[0] && shareholdingPattern[0][ShareHolderType.DIIs]
-          ? Number(shareholdingPattern[0][ShareHolderType.DIIs])
+        newShareholdingPattern[0] &&
+        newShareholdingPattern[0][ShareHolderType.DIIs]
+          ? Number(newShareholdingPattern[0][ShareHolderType.DIIs])
           : 0,
       DIIsDataPercentChange: getInstitutionGrowthRate(
-        shareholdingPattern[0],
-        shareholdingPattern[1],
+        newShareholdingPattern[0],
+        newShareholdingPattern[1],
         ShareHolderType.DIIs
       ),
       FIIsDataLatest:
-        shareholdingPattern[0] && shareholdingPattern[0][ShareHolderType.FIIs]
-          ? Number(shareholdingPattern[0][ShareHolderType.FIIs])
+        newShareholdingPattern[0] &&
+        newShareholdingPattern[0][ShareHolderType.FIIs]
+          ? Number(newShareholdingPattern[0][ShareHolderType.FIIs])
           : 0,
       FIIsDataPercentChange: getInstitutionGrowthRate(
-        shareholdingPattern[0],
-        shareholdingPattern[1],
+        newShareholdingPattern[0],
+        newShareholdingPattern[1],
         ShareHolderType.FIIs
       ),
       badge: getBadgesForCompany(company),
@@ -95,6 +137,9 @@ export function CompaniesFinancialsComponent(props: CompanyDetailsProps) {
           <FinancialsTable
             rows={financialRows}
             positiveTechCompanies={positiveTechCompanies}
+            watchListCompanies={watchListCompanies}
+            updateWatchListCompany={updateWatchListCompany}
+            breakoutCompanies={breakoutCompanies}
           />
         </div>
       )}

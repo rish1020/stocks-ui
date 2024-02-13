@@ -27,6 +27,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import { BreakoutCompany } from "../interfaces/BreakoutCompany";
 import { BreakoutWatchListCompany } from "../interfaces/BreakoutWatchListCompany";
 import { getStoredBreakoutCompanies } from "../services/ApiService";
+import * as ApiService from "../services/ApiService";
+import { AddWatchListComponent } from "../canslim/AddWatchListComponent";
 
 export interface WeekBreakoutCompaniesProps {
   breakoutCompanies: BreakoutCompany[];
@@ -50,19 +52,11 @@ export interface WeekBreakoutCompaniesProps {
   ) => void;
 
   breakoutCompaniesStatus: any;
+
+  updateCompaniesForCompanyDetails: (companies: BreakoutCompany[]) => void;
 }
 
 export type WatchlistClickOperation = "Add" | "Remove" | "Update";
-
-type Color =
-  | "primary"
-  | "error"
-  | "inherit"
-  | "secondary"
-  | "info"
-  | "success"
-  | "warning"
-  | undefined;
 
 export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
   const {
@@ -74,6 +68,7 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
     watchListCompanies,
     updateWatchListCompany,
     breakoutCompaniesStatus,
+    updateCompaniesForCompanyDetails,
   } = props;
 
   const [filteredBreakoutCompanies, setFilteredBreakoutCompanies] = useState<
@@ -85,23 +80,28 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
     []
   );
   const [exchange, setExchange] = React.useState("NSE");
-  const [email, setEmail] = React.useState("");
-  const [dialogContent, setDialogContent] = React.useState<{
-    content: string;
-    callback: () => void;
-  }>({ content: "", callback: () => {} });
 
   let indexNo = 1;
-  const [watchlistCompaniesNameList, setWatchListCompaniesNameList] = useState<
-    string[]
-  >([]);
+
+  const fetchCompanyDetails = () => {
+    const companyNos = searchedCompanies.map((data) => {
+      return { companyNo: data.Symb };
+    });
+    ApiService.updateCompanyDetails(companyNos)
+      .then((data) => {
+        alert("Fetch completed");
+      })
+      .catch((error) => {
+        alert(error);
+      });
+  };
 
   useEffect(() => {
     const companiesAfterFilter1 = breakoutCompanies.filter((company) => {
       return (
         company.Info.C1 >= 30 &&
         company.Info.C1 <= 500 &&
-        Math.abs(company.Info.NYHZG) <= 10
+        Math.abs(company.Info.NYHZG) <= 6
       );
     });
 
@@ -120,13 +120,8 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
 
     setFilteredBreakoutCompanies(companiesAfterFilter2);
     setSearchedCompanies(companiesAfterFilter2);
+    updateCompaniesForCompanyDetails(companiesAfterFilter2);
   }, [breakoutCompanies]);
-
-  useEffect(() => {
-    const list = watchListCompanies.map((data) => data.Symb);
-
-    list.length && setWatchListCompaniesNameList(list);
-  }, [watchListCompanies]);
 
   useEffect(() => {
     if (exchange === "All") {
@@ -138,33 +133,6 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
       setSearchedCompanies(exchangeCompanies);
     }
   }, [exchange, filteredBreakoutCompanies]);
-
-  function updateTradingView() {
-    setDialogContent({
-      content: `All the companies will be updated in trading view`,
-      callback: () => {},
-    });
-  }
-
-  const getWatchlistModel = useCallback(
-    (
-      company: BreakoutCompany
-    ): { label: string; clickOp: WatchlistClickOperation; color: Color } => {
-      if (watchlistCompaniesNameList.indexOf(company.Symb) === -1) {
-        return {
-          label: "Add to watchlist",
-          clickOp: "Add",
-          color: "primary",
-        };
-      }
-      return {
-        label: "Remove from Watchlist",
-        clickOp: "Remove",
-        color: "error",
-      };
-    },
-    [watchlistCompaniesNameList]
-  );
 
   const onTextChanged = (elem: React.ChangeEvent<HTMLInputElement>) => {
     const curValue = elem.currentTarget.value.toLowerCase();
@@ -180,15 +148,6 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
       (data) => data.Name.toLowerCase().indexOf(curValue) !== -1
     );
     setSearchedCompanies(newCompanies);
-  };
-
-  const handleDialogClose = () => {
-    setDialogContent({ content: "", callback: () => {} });
-  };
-
-  const handleEmailChange = (event: SelectChangeEvent) => {
-    console.log("changing email id", event.target.value);
-    setEmail(event.target.value as string);
   };
 
   return (
@@ -216,12 +175,13 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
             >
               Update Companies
             </Button>
+
             <Button
-              onClick={updateTradingView}
+              onClick={fetchCompanyDetails}
               variant="contained"
               style={{ margin: "5px" }}
             >
-              Update Tradingview
+              Fetch Company Details
             </Button>
           </div>
 
@@ -300,17 +260,11 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
                       <TableCell>{company.Info.NYH}</TableCell>
                       <TableCell>{company.Info.NYHZG.toFixed(1)}</TableCell>
                       <TableCell>
-                        <Button
-                          color={getWatchlistModel(company).color}
-                          onClick={() =>
-                            updateWatchListCompany(
-                              company,
-                              getWatchlistModel(company).clickOp
-                            )
-                          }
-                        >
-                          {getWatchlistModel(company).label}
-                        </Button>
+                        <AddWatchListComponent
+                          watchListCompanies={watchListCompanies}
+                          company={company}
+                          updateWatchListCompany={updateWatchListCompany}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -318,57 +272,6 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
               </Table>
             </TableContainer>
           </div>
-          <Dialog
-            open={dialogContent.content.length > 0}
-            onClose={handleDialogClose}
-            aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description"
-          >
-            <DialogContent>
-              <DialogContentText
-                id="alert-dialog-description"
-                style={{ margin: "10px 0" }}
-              >
-                {dialogContent.content}
-              </DialogContentText>
-              <Select
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
-                value={email}
-                label="Age"
-                onChange={handleEmailChange}
-                style={{
-                  minWidth: 230,
-                }}
-              >
-                <MenuItem value={"arya.arya.rishab@gmail.com"}>
-                  arya.arya.rishab@gmail.com
-                </MenuItem>
-                <MenuItem value={"rishav.arya2720@gmail.com"}>
-                  rishav.arya2720@gmail.com
-                </MenuItem>
-                <MenuItem value={"rishav.arya1020@gmail.com"}>
-                  rishav.arya1020@gmail.com
-                </MenuItem>
-              </Select>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleDialogClose}>Disagree</Button>
-              <Button
-                onClick={() => {
-                  setDialogContent({ content: "", callback: () => {} });
-                  updateTradingViewForBreakouts(
-                    filteredBreakoutCompanies,
-                    email
-                  );
-                }}
-                autoFocus
-                disabled={email.length === 0}
-              >
-                Agree
-              </Button>
-            </DialogActions>
-          </Dialog>
         </div>
       )}
     </>

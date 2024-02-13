@@ -21,6 +21,9 @@ export function WeekBreakoutComponent(props: WeekBreakoutComponentProps) {
   const [breakoutCompaniesStatus, setBreakoutCompaniesStatus] = useState({});
 
   const [loading, setLoading] = useState(false);
+  const [companyDetailsCompanies, setCompanyDetailsCompanies] = useState<
+    BreakoutCompany[]
+  >([]);
 
   const [watchListCompanies, setWatchListCompanies] = useState<
     BreakoutWatchListCompany[]
@@ -143,6 +146,10 @@ export function WeekBreakoutComponent(props: WeekBreakoutComponentProps) {
       });
   };
 
+  const updateCompaniesForCompanyDetails = (companies: BreakoutCompany[]) => {
+    setCompanyDetailsCompanies(companies);
+  };
+
   return (
     <>
       <Box sx={{ width: "100%" }}>
@@ -153,8 +160,8 @@ export function WeekBreakoutComponent(props: WeekBreakoutComponentProps) {
             aria-label="basic tabs example"
           >
             <Tab label="Companies" />
-            <Tab label="WatchList" />
             <Tab label="Company Details" />
+            <Tab label="WatchList" />
           </Tabs>
         </Box>
         <TabPanel value={value} index={0}>
@@ -168,24 +175,30 @@ export function WeekBreakoutComponent(props: WeekBreakoutComponentProps) {
               watchListCompanies={watchListCompanies}
               updateWatchListCompany={updateWatchListCompany}
               breakoutCompaniesStatus={breakoutCompaniesStatus}
+              updateCompaniesForCompanyDetails={
+                updateCompaniesForCompanyDetails
+              }
             />
           </div>
         </TabPanel>
         <TabPanel value={value} index={1}>
+          <div>
+            <WeeklyBreakoutCompanyDetails
+              breakoutCompanies={breakoutCompanies}
+              companyDetailsCompanies={companyDetailsCompanies}
+              watchListCompanies={watchListCompanies}
+              updateWatchListCompany={updateWatchListCompany}
+              loading={loading}
+            />
+          </div>
+        </TabPanel>
+        <TabPanel value={value} index={2}>
           <div>
             <WeeklyBreakoutWatchlistComponent
               watchListCompanies={watchListCompanies}
               loading={loading}
               updateNoteForCompany={updateNoteForCompany}
               updateWatchListCompany={updateWatchListCompany}
-            />
-          </div>
-        </TabPanel>
-        <TabPanel value={value} index={2}>
-          <div>
-            <WeeklyBreakoutCompanyDetails
-              watchListCompanies={watchListCompanies}
-              loading={loading}
             />
           </div>
         </TabPanel>

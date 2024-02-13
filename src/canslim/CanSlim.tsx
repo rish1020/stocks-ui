@@ -130,10 +130,10 @@ export function CanSlim() {
         </TabPanel>
         <TabPanel value={value} index={1}>
           <div>
-            <CompaniesFinancialsComponent
+            {/* <CompaniesFinancialsComponent
               companyDetails={companyDetails}
               positiveTechCompanies={positiveTechnicalCompanies}
-            />
+            /> */}
           </div>
         </TabPanel>
       </Box>

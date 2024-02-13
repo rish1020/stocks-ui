@@ -12,20 +12,41 @@ import {
   stableSort,
 } from "./FinancialTableHeader";
 import { FinancialTableRowComponent } from "./FinancialTableRowComponent";
+import { BreakoutCompany } from "../interfaces/BreakoutCompany";
+import { BreakoutWatchListCompany } from "../interfaces/BreakoutWatchListCompany";
+import { WatchlistClickOperation } from "../weekbreakout/WeeklyBreakoutCompanies";
 
 export interface FinancialsTableProps {
   rows: FinancialTableRow[];
 
   positiveTechCompanies: string[];
+
+  watchListCompanies: BreakoutWatchListCompany[];
+
+  updateWatchListCompany: (
+    company: BreakoutCompany,
+    clickOp: WatchlistClickOperation
+  ) => void;
+
+  breakoutCompanies: BreakoutCompany[];
 }
 
 export function FinancialsTable(props: FinancialsTableProps) {
-  const { rows, positiveTechCompanies } = props;
+  const {
+    rows,
+    positiveTechCompanies,
+    watchListCompanies,
+    updateWatchListCompany,
+    breakoutCompanies,
+  } = props;
 
   const [order, setOrder] = useState<Order>("desc");
   const [orderBy, setOrderBy] = useState<keyof FinancialTableRow>(
     "FIIsDataPercentChange"
   );
+  const [watchListCompaniesMap, setWatchListCompaniesMap] = useState<{
+    [key: string]: BreakoutWatchListCompany;
+  }>({});
   const [selected, setSelected] = useState<readonly string[]>([]);
   const [goodCompanies, setGoodCompanies] = useState<FinancialTableRow[]>([]);
   const [poorCompanies, setPoorCompanies] = useState<FinancialTableRow[]>([]);
@@ -48,6 +69,14 @@ export function FinancialsTable(props: FinancialsTableProps) {
     setSelected([]);
   };
 
+  useEffect(() => {
+    const map: any = {};
+    for (const company of breakoutCompanies) {
+      map[company.Symb] = company;
+    }
+    setWatchListCompaniesMap(map);
+  }, [breakoutCompanies]);
+
   const isCompanyGood = useCallback(
     (row: FinancialTableRow): { value: boolean | null; title?: string } => {
       if (row.FIIsDataPercentChange < 0 && row.DIIsDataPercentChange < 0) {
@@ -60,6 +89,12 @@ export function FinancialsTable(props: FinancialsTableProps) {
         return {
           value: true,
           title: "Technicals are good",
+        };
+      }
+      if (row.badge.split(",").join().length === 0) {
+        return {
+          value: false,
+          title: "No badge is present",
         };
       }
       return {
@@ -102,6 +137,9 @@ export function FinancialsTable(props: FinancialsTableProps) {
                       row={row}
                       key={row.companyNo}
                       isCompanyGood={isCompanyGood}
+                      watchListCompanies={watchListCompanies}
+                      updateWatchListCompany={updateWatchListCompany}
+                      company={watchListCompaniesMap[row.companyNo]}
                     />
                   );
                 }
@@ -111,6 +149,9 @@ export function FinancialsTable(props: FinancialsTableProps) {
                   row={row}
                   key={row.companyNo}
                   isCompanyGood={isCompanyGood}
+                  watchListCompanies={watchListCompanies}
+                  updateWatchListCompany={updateWatchListCompany}
+                  company={watchListCompaniesMap[row.companyNo]}
                 />
               ))}
             </TableBody>
