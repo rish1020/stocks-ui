@@ -8,7 +8,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControl,
   FormControlLabel,
+  InputLabel,
   MenuItem,
   Paper,
   Radio,
@@ -80,6 +82,7 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
     []
   );
   const [exchange, setExchange] = React.useState("NSE");
+  const [percent, setPercent] = React.useState("5");
 
   let indexNo = 1;
 
@@ -101,7 +104,7 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
       return (
         company.Info.C1 >= 30 &&
         company.Info.C1 <= 500 &&
-        Math.abs(company.Info.NYHZG) <= 6
+        Math.abs(company.Info.NYHZG) <= Number(percent)
       );
     });
 
@@ -121,7 +124,7 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
     setFilteredBreakoutCompanies(companiesAfterFilter2);
     setSearchedCompanies(companiesAfterFilter2);
     updateCompaniesForCompanyDetails(companiesAfterFilter2);
-  }, [breakoutCompanies]);
+  }, [breakoutCompanies, percent]);
 
   useEffect(() => {
     if (exchange === "All") {
@@ -148,6 +151,10 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
       (data) => data.Name.toLowerCase().indexOf(curValue) !== -1
     );
     setSearchedCompanies(newCompanies);
+  };
+
+  const handlePercentChange = (event: SelectChangeEvent) => {
+    setPercent(event.target.value);
   };
 
   return (
@@ -219,14 +226,37 @@ export function WeekBreakoutCompanies(props: WeekBreakoutCompaniesProps) {
               </div>
             </div>
 
-            <div style={{ margin: "6px" }}>
-              <TextField
-                id="standard-basic"
-                label="Search "
-                variant="standard"
-                onChange={onTextChanged}
-                style={{ width: "25%" }}
-              />
+            <div style={{ margin: "6px", display: "flex" }}>
+              <div style={{ flex: 2 }}>
+                <TextField
+                  id="standard-basic"
+                  label="Search "
+                  variant="standard"
+                  onChange={onTextChanged}
+                  style={{ width: "50%" }}
+                />
+              </div>
+              <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
+                <div style={{ marginRight: 10 }}>
+                  % Change from 52 week high
+                </div>
+                <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }}>
+                  <Select
+                    labelId="demo-simple-select-label"
+                    id="percent"
+                    value={percent}
+                    label="Percent%"
+                    onChange={handlePercentChange}
+                  >
+                    <MenuItem value={5}>5%</MenuItem>
+                    <MenuItem value={6}>6%</MenuItem>
+                    <MenuItem value={7}>7%</MenuItem>
+                    <MenuItem value={8}>8%</MenuItem>
+                    <MenuItem value={9}>9%</MenuItem>
+                    <MenuItem value={10}>10%</MenuItem>
+                  </Select>
+                </FormControl>
+              </div>
             </div>
             <TableContainer component={Paper}>
               <Table
